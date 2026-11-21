@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tooldelta-mcp-cli"
+version = "0.1.0"
+description = "ToolDelta 游戏桥命令行与 MCP stdio 服务"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.scripts]
+tooldelta-mcp = "tooldelta_mcp_cli.cli:main"
+
+[tool.setuptools]
+packages = ["tooldelta_mcp_cli"]
+
+[tool.setuptools.package-data]
+tooldelta_mcp_cli = ["schemas.json"]

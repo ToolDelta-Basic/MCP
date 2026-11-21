@@ -1,0 +1,274 @@
+[
+  {
+    "name": "status",
+    "description": "查看游戏连接、机器人、启动器、桥会话和能力",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "players_list",
+    "description": "从框架的在线玩家表读取名单、身份与可用能力",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "game_command",
+    "description": "统一执行指令。player 是机器人，ws 是 WebSocket，wo 是游戏控制台（仅发送），ai 是具有最高操作台权限的魔法命令。console 调用本地配置允许的 ToolDelta 控制台菜单。",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "command": {
+          "type": "string",
+          "maxLength": 16000,
+          "description": "完整 MC 指令或 ToolDelta 菜单指令"
+        },
+        "channel": {
+          "type": "string",
+          "enum": [
+            "ws",
+            "player",
+            "wo",
+            "ai",
+            "console"
+          ]
+        },
+        "wait": {
+          "type": "boolean",
+          "description": "默认 true，wo 仅发送"
+        },
+        "include_raw": {
+          "type": "boolean",
+          "description": "收到回执时，在 raw 中附上框架的完整回执字典，默认 false"
+        },
+        "timeout": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 30
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "command"
+      ]
+    }
+  },
+  {
+    "name": "console_list",
+    "description": "列出本次注册的控制台触发词、参数提示和用途",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "bot_chat",
+    "description": "以本次登录的机器人身份发送普通游戏聊天，发送状态与服务端回显分开",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string",
+          "maxLength": 512,
+          "description": "单条聊天消息"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "message"
+      ]
+    }
+  },
+  {
+    "name": "logs_read",
+    "description": "读取、搜索或等待控制台日志；date 指定历史日期，实时游标与文件游标独立",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "after": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "session": {
+          "type": "string",
+          "maxLength": 512,
+          "description": "上次响应的 session，和 after 一起使用"
+        },
+        "contains": {
+          "type": "string",
+          "maxLength": 512,
+          "description": "正文包含的文字，忽略大小写"
+        },
+        "date": {
+          "type": "string",
+          "maxLength": 10,
+          "description": "历史日志日期 YYYY-MM-DD"
+        },
+        "level": {
+          "type": "string",
+          "maxLength": 512,
+          "description": "info/warning/error/success/loading 等"
+        },
+        "timeout": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 30
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "events_read",
+    "description": "读取来自游戏和桥生命周期的结构化事件",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "after": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "session": {
+          "type": "string",
+          "maxLength": 512,
+          "description": "上次响应的 session，和 after 一起使用"
+        },
+        "contains": {
+          "type": "string",
+          "maxLength": 512,
+          "description": "正文包含的文字，忽略大小写"
+        },
+        "kind": {
+          "type": "string",
+          "maxLength": 512,
+          "description": "事件类型，空字符串匹配所有类型"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "events_wait",
+    "description": "等到匹配事件或超时；省略 after 时从调用时刻开始等待",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "after": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "session": {
+          "type": "string",
+          "maxLength": 512,
+          "description": "上次响应的 session，和 after 一起使用"
+        },
+        "contains": {
+          "type": "string",
+          "maxLength": 512,
+          "description": "正文包含的文字，忽略大小写"
+        },
+        "kind": {
+          "type": "string",
+          "maxLength": 512,
+          "description": "事件类型，空字符串匹配所有类型"
+        },
+        "timeout": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 30
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "docs_search",
+    "description": "搜索本桥接口、代码用法、游戏指令示例和本地 ToolDelta 插件开发文档",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "string",
+          "maxLength": 512,
+          "description": "接口名、中文关键词或正文，比如背包"
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "docs_get",
+    "description": "按 docs_search 返回的 id 分页读取文档，offset 和 limit 单位为字符",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 512,
+          "description": "文档 ID"
+        },
+        "offset": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2147483647
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16000
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id"
+      ]
+    }
+  },
+  {
+    "name": "execute_code",
+    "description": "直接执行游戏自动化 Python 子集。按工具名称调用，print 输出、result 返回值。支持条件和有界循环。可通过 docs_get(id='guide/code') 查看用法。",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "maxLength": 12000,
+          "description": "Python 代码，例如 result = game_command('/list')"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "code"
+      ]
+    }
+  }
+]
