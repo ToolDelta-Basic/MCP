@@ -2,6 +2,8 @@
 
 这个命令行工具连接本机正在运行的 ToolDelta「ToolDelta-MCP」插件，让终端用户和支持 MCP 的 AI 客户端调用同一组工具。需要 Python 3.10 或更高版本。运行时仅使用 Python 标准库。
 
+## 由 Agent 执行安装和验收时，请让其读取 [Agent 安装指南](AGENT_INSTALL.md)。
+
 ## 从官方插件市场安装
 
 游戏端插件名为 **ToolDelta-MCP**，市场 ID 为 `tooldelta-mcp-bridge`。在已连接游戏的 **ToolDelta 控制台**输入以下命令，或输入 `插件市场` 后按名称选择安装。[市场插件目录](https://github.com/ToolDelta-Basic/PluginMarket/tree/main/ToolDelta-MCP) · [已合并的投稿 PR](https://github.com/ToolDelta-Basic/PluginMarket/pull/201)
