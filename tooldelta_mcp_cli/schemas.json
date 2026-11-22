@@ -207,7 +207,7 @@
   },
   {
     "name": "docs_search",
-    "description": "搜索本桥接口、代码用法、游戏指令示例和本地 ToolDelta 插件开发文档",
+    "description": "搜索 CLI 内置的 ToolDelta Wiki，游戏桥在线时也搜索桥的工具说明、指南和配置的开发文档",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -227,7 +227,7 @@
   },
   {
     "name": "docs_get",
-    "description": "按 docs_search 返回的 id 分页读取文档，offset 和 limit 单位为字符",
+    "description": "按 docs_search 返回的 id 分页读取文档，bundled-wiki/ 下的文档可离线读取，offset 和 limit 单位为字符",
     "inputSchema": {
       "type": "object",
       "properties": {

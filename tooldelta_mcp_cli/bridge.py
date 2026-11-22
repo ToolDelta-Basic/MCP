@@ -4,15 +4,20 @@ import http.client
 import ipaddress
 import json
 import os
+from functools import cache
 from importlib import resources
+from itertools import zip_longest
 from pathlib import Path
 from urllib.parse import urlsplit
+
+from . import wiki
 
 
 LEGACY_RELATIVE = Path("插件数据文件") / "MCP游戏桥" / "connection.json"
 DEFAULT_RELATIVE = Path("插件数据文件") / "ToolDelta-MCP" / "connection.json"
 PROJECT = Path(r"D:\gitclone\ToolDelta")
 MAX_RESPONSE = 16 * 1024 * 1024
+DOC_TOOLS = ("docs_search", "docs_get")
 
 
 class BridgeError(Exception):
@@ -23,6 +28,36 @@ class BridgeError(Exception):
 
 class BridgeUnavailable(BridgeError):
     """No live bridge response was obtained."""
+
+
+@cache
+def _bundled_tools():
+    schemas = resources.files(__package__).joinpath("schemas.json")
+    return {tool["name"]: tool for tool in json.loads(schemas.read_text(encoding="utf-8"))}
+
+
+def _validate_doc_args(name, arguments):
+    schema = _bundled_tools()[name]["inputSchema"]
+    if missing := set(schema.get("required", [])) - arguments.keys():
+        raise BridgeError(-32602, "缺少参数 " + ", ".join(sorted(missing)))
+    for key, value in arguments.items():
+        spec = schema["properties"].get(key)
+        if spec is None:
+            raise BridgeError(-32602, "未知参数 " + key)
+        if spec["type"] == "string":
+            valid = isinstance(value, str) and len(value) <= spec["maxLength"]
+        else:
+            valid = type(value) is int and spec["minimum"] <= value <= spec["maximum"]
+        if not valid:
+            raise BridgeError(-32602, "参数值无效 " + key)
+
+
+def _require_wiki():
+    if not wiki.available():
+        raise BridgeError(
+            "wiki_unavailable",
+            "未找到内置 Wiki。使用源码时请运行 git submodule update --init；安装版请重新安装包含 Wiki 的包。",
+        )
 
 
 class Bridge:
@@ -116,13 +151,51 @@ class Bridge:
         try:
             data = self._rpc("tools/list", {}, 10)
         except BridgeUnavailable:
-            schemas = resources.files(__package__).joinpath("schemas.json")
-            return json.loads(schemas.read_text(encoding="utf-8"))
+            return list(_bundled_tools().values())
         if not isinstance(data, dict) or not isinstance(data.get("tools"), list):
             raise BridgeError("bad_response", "游戏桥未返回工具列表")
-        return data["tools"]
+        docs = {name: _bundled_tools()[name] for name in DOC_TOOLS}
+        tools = [docs.pop(tool["name"], tool) for tool in data["tools"]]
+        return tools + list(docs.values())
 
     def call(self, name, arguments):
+        if name in DOC_TOOLS:
+            _validate_doc_args(name, arguments)
+            if name == "docs_search":
+                return self._search_docs(arguments)
+            if arguments["id"].startswith(wiki.ID_PREFIX):
+                _require_wiki()
+                try:
+                    return wiki.get(**arguments)
+                except KeyError:
+                    raise BridgeError(-32602, "未知文档 ID，请先用 docs_search 查询") from None
+        return self._call_bridge(name, arguments)
+
+    def _search_docs(self, arguments):
+        terms = arguments.get("query", "").casefold().split()
+        limit = arguments.get("limit", 15)
+        local = wiki.search(terms, limit)
+        try:
+            remote = self._call_bridge("docs_search", arguments)
+        except BridgeError as exc:
+            # The bridge can be offline or reject this tool via its plugin configuration.
+            if not isinstance(exc, BridgeUnavailable) and exc.code not in ("connection_file", -32602):
+                raise
+            _require_wiki()
+            return local
+        if not local["total"]:
+            return remote
+        if (not isinstance(remote, dict) or type(remote.get("total")) is not int
+                or not isinstance(remote.get("items"), list)):
+            raise BridgeError("bad_response", "游戏桥未返回有效的文档搜索结果")
+        hits = [
+            hit for pair in zip_longest(remote["items"], local["items"])
+            for hit in pair if hit is not None
+        ]
+        hits.sort(key=lambda hit: wiki.rank(hit, terms), reverse=True)
+        return {"total": remote["total"] + local["total"], "items": hits[:limit]}
+
+    def _call_bridge(self, name, arguments):
         timeout = arguments.get("timeout", 60 if name == "execute_code" else 30)
         if not isinstance(timeout, (float, int)) or not 0 <= timeout <= 86400:
             timeout = 30

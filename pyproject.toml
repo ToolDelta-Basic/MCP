@@ -15,6 +15,7 @@ tooldelta-mcp = "tooldelta_mcp_cli.cli:main"
 
 [tool.setuptools]
 packages = ["tooldelta_mcp_cli"]
+include-package-data = false
 
 [tool.setuptools.package-data]
-tooldelta_mcp_cli = ["schemas.json"]
+tooldelta_mcp_cli = ["schemas.json", "_wiki/LICENSE", "_wiki/docs/**/*.md"]

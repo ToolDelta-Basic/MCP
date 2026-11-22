@@ -14,10 +14,10 @@
 
 ## 2. 准备 CLI
 
-CLI 使用 Python 标准库。已有 CLI 仓库时，直接运行其中的 `run.py`。尚无源码时，克隆到用户选定的目录。 [CLI 源码](https://github.com/ToolDelta-Basic/MCP)
+CLI 使用 Python 标准库。已有 CLI 仓库时，在仓库根目录用 `git submodule update --init` 获取 Wiki 子模块，再运行 `run.py`。尚无源码时，克隆到用户选定的目录。 [CLI 源码](https://github.com/ToolDelta-Basic/MCP)
 
 ```powershell
-git clone https://github.com/ToolDelta-Basic/MCP.git 'D:\gitclone\tooldelta-mcp-cli'
+git clone --recurse-submodules https://github.com/ToolDelta-Basic/MCP.git 'D:\gitclone\tooldelta-mcp-cli'
 ```
 
 将下面的两个目录换成实测路径。若 `python` 指向其他解释器，将其换成选定的 Python 可执行文件。
@@ -30,9 +30,10 @@ $connection = Join-Path $toolDeltaRoot '插件数据文件\ToolDelta-MCP\connect
 $python = python -c "import sys; print(sys.executable)"
 & $python --version
 & $python -B $cli --version
+& $python -B $cli docs get bundled-wiki/plugin-dev/index.md
 ```
 
-确认 Python 版本符合要求，且最后一条命令能打印 CLI 版本。需要把 CLI 安装为 Python 包时，在选定的 Python 环境运行 `& $python -m pip install $cliRoot`，然后用 `& $python -m tooldelta_mcp_cli --version` 检查。后续也可继续用已验证的 `run.py`。
+确认 Python 为 3.10 或更高版本，CLI 能打印版本，且 `docs get` 返回 Wiki 正文。查询这份文档无需启动 ToolDelta。需要把 CLI 安装为 Python 包时，在选定的 Python 环境运行 `& $python -m pip install $cliRoot`，然后用 `& $python -m tooldelta_mcp_cli --version` 检查。后续也可继续用已验证的 `run.py`。
 
 ## 3. 安装并加载 ToolDelta 插件
 
@@ -65,7 +66,7 @@ Test-Path -LiteralPath $connection -PathType Leaf
 - `reason: offline` 表示所查找的连接文件缺失。核对实例路径和插件就绪日志。
 - `reason: transport` 表示传输失败。确认生成该文件的插件仍在运行，且执行 CLI 的环境能访问它的本机回环地址。
 
-离线时 `status` 仍可能以退出码 `0` 结束，`tools` 也可展示 CLI 自带的清单。按 `bridge_connected` 和 `catalog_source` 判断游戏桥是否可用。 [离线行为](README.md#连接游戏)
+离线时 `status` 仍可能以退出码 `0` 结束，`tools` 也可展示 CLI 自带的清单。内置 Wiki 可通过 `docs search` 和 `docs get` 查阅。按 `bridge_connected` 和 `catalog_source` 判断游戏桥是否可用。 [离线行为](README.md#连接游戏)
 
 ## 5. 配置并验收目标 MCP 客户端
 
@@ -86,5 +87,7 @@ Test-Path -LiteralPath $connection -PathType Leaf
 若客户端无法传入环境变量，在参数中把 `--connection` 和文件绝对路径放在 `serve` 前。两种设置同时存在时，`--connection` 优先。重新加载客户端的 MCP 配置或重启该 MCP 服务。
 
 在**目标 harness** 中调用 `tooldelta` 的 `status`，确认 `bridge_connected: true` 和 `catalog_source: plugin`。若终端验证通过但这里返回 `offline`，对照响应中的路径与第 4 步使用的路径，检查客户端实际传入的参数、环境变量及其进程对该路径的可见性。若用户要求验收游戏连接，再确认 `connected: true`，可调用只读工具 `players_list` 检查游戏数据。
+
+验证 Wiki 查询时，在目标 harness 中调用 `docs_search`，搜索「插件开发」，再把结果中任意一个 `bundled-wiki/` 开头的 ID 传给 `docs_get` 并确认返回正文。
 
 向用户报告所用的 ToolDelta 实例目录、配置的 harness、游戏桥和游戏连接状态，以及尚待完成的任何一步。

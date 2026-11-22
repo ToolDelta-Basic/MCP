@@ -1,0 +1,3 @@
+[submodule "tooldelta-wiki"]
+	path = tooldelta_mcp_cli/_wiki
+	url = https://github.com/ToolDelta-Basic/Wiki

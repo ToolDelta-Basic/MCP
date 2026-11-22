@@ -4,6 +4,16 @@
 
 ## 由 Agent 执行安装和验收时，请让其读取 [Agent 安装指南](AGENT_INSTALL.md)。
 
+## 获取 CLI
+
+首次克隆时一起拉取 ToolDelta Wiki 子模块。
+
+```powershell
+git clone --recurse-submodules https://github.com/ToolDelta-Basic/MCP.git
+```
+
+已有 CLI 仓库时，在仓库根目录执行 `git submodule update --init`。从已初始化的源码构建的 wheel 和 sdist 均包含 Wiki 的 Markdown 和许可证。
+
 ## 从官方插件市场安装
 
 游戏端插件名为 **ToolDelta-MCP**，市场 ID 为 `tooldelta-mcp-bridge`。在已连接游戏的 **ToolDelta 控制台**输入以下命令，或输入 `插件市场` 后按名称选择安装。[市场插件目录](https://github.com/ToolDelta-Basic/PluginMarket/tree/main/ToolDelta-MCP) · [已合并的投稿 PR](https://github.com/ToolDelta-Basic/PluginMarket/pull/201)
@@ -31,7 +41,7 @@ python -m tooldelta_mcp_cli console
 python -m tooldelta_mcp_cli docs search "ListenChat"
 ```
 
-游戏桥离线时，`tools` 提供 CLI 随包的基础接口清单，`status` 返回 `bridge_connected: false`、`connected: null` 和离线原因。此时玩家和游戏运行情况未知。游戏桥上线后，同一 MCP 会话即可调用游戏工具。`tools` 将读取插件按配置开放的实时清单，`status` 返回 `bridge_connected: true` 和实际游戏连接状态。任何操作的权限均由在线插件核验。
+游戏桥离线时，`tools` 提供 CLI 随包的基础接口清单，`status` 返回 `bridge_connected: false`、`connected: null` 和离线原因。此时玩家和游戏运行情况未知。游戏桥上线后，同一 MCP 会话即可调用游戏工具。`tools` 将读取插件按配置开放的实时清单，`status` 返回 `bridge_connected: true` 和实际游戏连接状态。游戏操作的权限均由在线插件核验。
 
 `command` 默认使用 WebSocket 身份。可用通道包括 `ws`（WebSocket）、`player`（机器人玩家）、`wo`（游戏控制台，只发送）、`ai`（具有最高操作台权限的魔法命令）和 `console`（已允许的 ToolDelta 菜单）。`status` 可查看启动器是否支持魔法命令回执。执行操作后遇到连接中断时，应先查看游戏状态或日志以确认结果，自动重试可能造成重复执行。
 
@@ -51,9 +61,20 @@ python -m tooldelta_mcp_cli docs search "ListenChat"
 | `logs_read` | `logs` | 读取实时日志，或用 `--date YYYY-MM-DD` 查询历史日志。 |
 | `events_read` | `events` | 按类型、关键词和游标读取游戏事件。 |
 | `events_wait` | `events --wait` | 等待匹配的事件，可指定超时。 |
-| `docs_search` | `docs search` | 搜索工具说明、示例和本地开发文档。 |
-| `docs_get` | `docs get` | 按 ID 阅读文档，例如 `python run.py docs get guide/code`。 |
+| `docs_search` | `docs search` | 搜索随 CLI 分发的 ToolDelta Wiki 和在线游戏桥提供的文档。 |
+| `docs_get` | `docs get` | 按搜索结果中的 ID 阅读文档，支持分页。 |
 | `execute_code` | `exec` | 执行游戏自动化 Python 子集，返回 `result`、`stdout`、步数和工具调用次数。 |
+
+## 查阅 ToolDelta Wiki
+
+CLI 随附 ToolDelta Wiki 的 `docs/` 下的 Markdown。终端和 MCP 客户端都可以在游戏桥离线时搜索和读取 Wiki。内置 Wiki 文档 ID 以 `bundled-wiki/` 开头，后面接文档在 `docs/` 下的相对路径。
+
+```powershell
+python run.py docs search "插件开发"
+python run.py docs get bundled-wiki/plugin-dev/index.md
+```
+
+从 MCP 客户端使用 `docs_search` 查找文档，再把结果中的 `id` 传给 `docs_get`。游戏桥在线时，搜索还会返回插件提供的文档，原有 ID（例如 `guide/code`）仍可使用。
 
 ## 重载插件并验证
 
